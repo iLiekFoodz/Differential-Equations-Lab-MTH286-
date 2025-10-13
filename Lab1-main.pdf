@@ -1,0 +1,110 @@
+%%Lab #1 main%%
+
+%%%%%Example 1%%%%%
+%%%(a) dy/dx=1+x+y^2+x*y^2  %nonlinear DE
+
+%dsolve(eqn1,eqn2, ...,initcond) 
+
+%dsolve('Dy=1+x+y^2+x*y^2','x')  %string
+%dsolve('Dy=1+x+y^2+x*y^2')
+
+syms y(x)     %define a symbolic function y(x) of x
+dsolve(diff(y,x)==1+x+y^2+x*y^2)    %here we use a double equal sign ==, since a single equal sign is reserved
+%for an assignment of a value to a variable
+dsolve(diff(y,x)==1+x+y^2+x*y^2,x) %it is a good habit to include the independent variable to avoid ambiguity
+
+factor(1+x+y^2+x*y^2)  %separable equation
+%%----------------------------
+
+
+%%%(b) dy/dt=t*exp(-t)-2*y  %first-order linear equation
+syms y(t) 
+dsolve(diff(y,t) == t*exp(-t)-2*y,t)   
+%%----------------------------
+
+
+%%%(c) dy/dx=(2*x+y)/x   %homogeneous equation f(x,y)=g(x/y) 
+syms y(x)
+dsolve(diff(y,x)==(2*x+y)/x,x)  
+
+
+
+%%%%%Example 2%%%%%
+%Solve the IVP: dy/dx=x^2-y, y(0)=1
+%%%(a) Find the exact solution
+syms y(x)
+dsolve(diff(y,x)==x^2-y,y(0)==1,x)
+
+%solve the differential equation with a general initial value c
+syms c  
+dsolve(diff(y,x)==x^2-y,y(0)==c,x)
+%compare it with the the solution of dsolve(diff(y,x)==x^2-y,x)
+
+sol1=dsolve(diff(y,x)==x^2-y,y(0)==1,x); %name the output (a symobolic expr)
+
+
+%%%(b) Evaluate y(x) at x = 1, 3, 10.
+subs(sol1,x,1)  %replaces x with 1 in the symbolic expression sol1
+subs(sol1,x,[1 3 10]) 
+
+% sol1fun(x)=dsolve(diff(y,x)==x^2-y,y(0)==1,x) %assign the output to a symbolic function
+% sol1fun(1)
+% sol1fun([1 3 10])
+% 
+% double(sol1fun(1))  %returns double precision value
+% double(sol1fun([1 3 10]))
+% vpa(sol1fun(1))
+
+
+%%%(c) Plot the exact and numerical solutions on x in [0, 10].
+x1=0:0.1:10;  %try help : % J:D:K  is the same as [J, J+D, ..., J+m*D] where m = fix((K-J)/D)
+y1=subs(sol1,x,x1);  %subs(S,OLD,NEW) replaces OLD with NEW in the symbolic expression 
+plot(x1,y1,'r+')  %help plot, r--red and +--plus  %plot the exact solution
+xlabel('x'),ylabel('y')
+title('Solution curve for dy/dx = x^2-y, y(0)=1')
+
+%ezplot(sol1fun,[0,10])
+%ezplot(sol1fun(x),[0,10])
+
+hold on
+f=@(x,y) x^2-y;
+[xa, ya]=ode45(f, [0,10], 1);   %f-function, [0,10]-the interval on which to solve, 1-initial value at the left-endpoint of the interval
+%ode45 is based on an explicit Runge-Kutta (4,5) formula
+%x and y- values of approximate solution
+plot(xa,ya,'b-')
+hold off
+
+% f=@(x,y) x^2-y;
+% ode45(f, [0,10], 1)  
+
+
+
+%%%%%Example 3%%%%%
+%Sketch the slope field for the ODE: dy/dx= x + y, -6<= x<= 6, -10 <= y <=10
+clc;clear;close %clc--clear command window, clear--remove all variables from the workspace, close--close figure
+
+[X, Y] = meshgrid(-6:6, -10:10); %produce the coordinates of a rectangular grid (X, Y)
+S=X+Y;    % f(x,y)=x+y, give the slope at each point
+L=sqrt(1+S.^2);  %rescale the vectors <1,S> to <1/L, S/L> such that they have the same length
+%x.*y and x.^2 are notations for element-wise (or pointwise) operations
+quiver(X, Y, 1./L, S./L, 0.5,'b')  %quiver(X,Y,U,V,S) plots velocity vectors as arrows 
+%with components (u,v) at the points (x,y) and stretches them by S
+%Here 0.5 reduces the length of the vectors by half
+
+axis tight  %TIGHT sets the axis limits to the range of the data
+%axis equal: EQUAL sets the aspect ratio so that equal tick mark increments on the x-, and y-axis are equal in size. 
+xlabel('x'), ylabel('y')
+title('Direction Field for dy/dx = x+y')
+
+
+%particular solution: y=-1-x; we can see that soln goes to infinity if IC is above the line, 
+%while soln goes to negative infinity if IC is below the line 
+%general soln: y=-1x+c*exp(-x)
+
+%plot some particular solutions on the same figure
+hold on;
+f=@(x,y) x+y;
+[xa, ya]=ode45(f, [-6,6], [4.9 4.99 5 5.01 5.1]);  %x and y- values of approximate solution
+plot(xa,ya,'r-','linewidth',2)
+axis([-6 6 -10 10]) %set the axis limits so that the x-axis ranges from -6 to 6 and the y-axis ranges from -20 to 10
+hold off
